@@ -1,0 +1,369 @@
+FoamFile                                                                        
+{                                                                               
+    object controlDict;                                                        
+    class dictionary;                                                     
+    format ascii;                                                               
+    version 2.0;                                                                
+}                                                                               
+                                                                                
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+                                                                                
+setupClass iconCFD-Process-4.1.2;
+applicationClass iconPisoFoam;
+meshClass iconHexMesh;
+workFlowClass ST;
+queueClass local_0_0; //nameQ costCenter softVersion
+templateClass box_staticParam; //nameTemplate_nameSetup
+deltaCouplingTime 0; //coupling interval
+averageLoopTime 4; //average interval
+
+deltaT 0.0002;
+deltaTM $deltaT;
+endTime 10;
+startTMeanVars 4;
+writeTime 3.33333;
+
+startTime 0;
+startFrom latestTime;
+stopAt endTime;
+//stopAt writeNow;
+
+adjustTimeStep no;
+minDeltaT 5e-05;
+maxDeltaT $deltaTM;
+maxCo 0;
+maxAlphaCo 0; //maximum Co at phaseInterface
+maxDi 1; //maximum diffusion number (solids)
+
+writeControl runTime;
+writeInterval $writeTime;
+purgeWrite 1; //0 disable
+
+writeFormat ascii;
+writePrecision 12;
+writeCompression compressed;
+timeFormat general;
+timePrecision 12;
+runTimeModifiable yes;
+
+turbulenceStartTime 0;
+alternativePRelaxationStartTime 5e-05;
+enthalpyUpdateStartTime 0.00125;
+densityUpdateStartTime 0.002;
+buoyancyStartTime 0;
+HODStartTime 0.006;
+nonOrthoCorrEndTime 50;
+
+functions
+(
+    timeStepRamp
+    {
+        order 1;
+        type timeVaryingTimeStep;
+        region region0;
+        enabled yes; //timeVaryingTimeStep
+
+        logToFile yes;
+        deltaTMin $minDeltaT;
+        deltaTDelay 0.001;
+        deltaTRamp 0.090417807626053;
+
+        timeStart 0;
+        timeEnd 0.090617807626053;
+        outputControl timeStep;
+        outputInterval 1;
+    }
+
+    fieldProcess
+    {
+        order 2;
+        type fieldProcess;
+        region region0;
+        enabled yes; //fieldProcess
+
+        name fieldProcess;
+        calculationControl timeStep;
+
+        RREF 1.205; PREF 0; TREF 293.15; UREF 35.8; LREF 2.786; //region properties
+
+        operations
+        (
+            {fieldName Unwv; write true; nearCellValue true; inField U; operation none;}
+            {fieldName tauw; operation wallShear; nearCellValue false; write true;}
+            {fieldName yPlus; shearField tauw; nearCellValue false; write true; operation yPlus;}
+            //{fieldName vorticity; nearCellValue false; write true; U U; operation vorticity;}
+            //{fieldName Q; nearCellValue false; write true; nonDimensionalQ true; U U; operation Q;}
+            {fieldName UMag; inField U; nearCellValue true; write true; operation mag;}
+            {fieldName Co; phi phi; rho rho; operation Co;}
+            {fieldName Cg; write true; nearCellValue true; p p; U U; Uref $UREF; rhoRef $RREF; pRef $PREF; operation Cg;}
+            {fieldName Cp; write true; nearCellValue true; p p; Uref $UREF; rhoRef $RREF; pRef $PREF; operation Cp;}
+        );
+
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl outputTime;
+        outputInterval 1;
+    }
+
+    fieldAverage
+    {
+        order 3;
+        type fieldAverage;
+        region region0;
+        enabled yes; //fieldAverage
+
+        name fieldAverage;
+        maxAveragingSteps -1;
+        averagingStartTime $startTMeanVars;
+
+        standardAverages
+        (
+            U
+            Unwv
+            UMag
+            p
+        );
+
+        tmpFieldAverages ();
+        deviatoricMeanSquares ();
+
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl outputTime;
+        outputInterval 1;
+    }
+
+    fieldProcess_post
+    {
+        order 4;
+        type fieldProcess;
+        region region0;
+        enabled yes; //fieldProcess_post
+
+        name fieldProcess_post;
+        calculationControl outputTime;
+
+        RREF 1.205; PREF 0; TREF 293.15; UREF 35.8; LREF 2.786; //region properties
+
+        operations 
+        (
+            {fieldName vorticity; nearCellValue false; write true; U U; operation vorticity;}
+            {fieldName Q; nearCellValue false; write true; nonDimensionalQ true; U U; operation Q;}
+            {fieldName CpMean; write true; nearCellValue true; p pMean; Uref $UREF; rhoRef $RREF; pRef $PREF; operation Cp;}
+            {fieldName CgMean; write true; nearCellValue true; p pMean; U UMean; Uref $UREF; rhoRef $RREF; pRef $PREF; operation Cg;}
+            {fieldName vorticityMean; nearCellValue false; write true; U UMean; operation vorticity;}
+            {fieldName helicityMean; write true; inField1 UnwvMean; inField2 vorticityMean; operation dot;}
+            {fieldName QMean; nearCellValue false; write true; U UMean; operation Q;}
+            {fieldName Q; nearCellValue false; write true; nonDimensionalQ true; U U; operation Q;}
+            {fieldName desZones; nearCellValue true; write true; operation desZones;} //RAS=0 LES=1
+            //{fieldName PopeRatio; nearCellValue true; write true; operation Pope;}    //desZones*PopeRatio >0.2 LES indicator for refinement. It needs UPrime2Mean(fieldAverage)
+        );
+
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl outputTime;
+        outputInterval 1;
+    }
+
+    liftDrag_regAir_1_5
+    {
+        order 5;
+        type liftDrag;
+        region region0;
+        enabled yes; //liftDrag
+
+        name liftDrag;
+        liftDragPatches
+        {
+            partialNamed
+            (
+                
+            );
+            exactNamed
+            (
+            );
+        }
+
+        liftDragPorousZones
+        {
+            partialNamed
+            (
+            );
+            exactNamed
+            (
+            );
+        }
+
+        Uinf (35.8 0 0);
+        rhoInf 1.205;
+        dragDirection (1 0 0);
+        liftDirection (0 0 1);
+        referenceArea  2.17;
+        referenceLength 2.786;
+        wheelbase $referenceLength;
+        referencePoint (1.4 0 -0.317);
+        binData {nBins 200; axis (1 0 0);}
+        nAveragingSteps 1;
+        outputRegionData yes;
+        outputForceField true;
+        outputForceInAeroCC true;
+        forceName aeroForce_group0;
+        extraForces true;
+        verbose true;
+        pRef 0; // PrRef,rel
+
+        //transform INPUT
+        //rollAngle 0; rollPointCoordinate 1.4 0 -0.317; rollDirection (1 0 0);
+        //pitchAngle 0; pitchPointCoordinate 1.4 0 -0.317; pitchDirection (0 1 0);
+        //yawAngle 0; yawPointCoordinate 1.4 0 -0.317; yawDirection (0 0 1);
+        //displaRP 0 0 0;
+        //turnTableRollAngle 0; turnTableRollDirection (1 0 0);
+        //turnTablePitchAngle 0; turnTablePitchDirection (0 1 0);
+        //turnTableYawAngle 0; turnTableYawDirection (0 0 1);
+        //Reynolds 6.60359e+06;
+
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl timeStep;
+        outputInterval 1;
+    }
+
+    fieldAverage
+    {
+        order 6;
+        type fieldAverage;
+        region region0;
+        enabled yes; //fieldAverage
+
+        name fieldAverage;
+        maxAveragingSteps -1;
+        averagingStartTime $startTMeanVars;
+
+        standardAverages
+        (
+            aeroForce_group0
+            tauw yPlus nuSgs
+            Co
+            nuTilda
+        );
+
+        tmpFieldAverages
+        (
+             //BMean kMean epsilonMean //SGSmodels
+        );
+
+        deviatoricMeanSquares
+        (
+             U
+             p
+        );
+
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl outputTime;
+        outputInterval 1;
+    }
+
+    blendingFactors_regAir_1
+    {
+        order 7;
+        type cflBlendingFactor;
+        region region0;
+        enabled yes; //blendingFactors
+
+        name blendingFactors;
+        verbose yes;
+        phiName phi;
+        stabilised 1000;
+        fieldCoefficients ((U 2));
+
+        iconCellLimiterCoeffs
+        {
+            //iconCellLimitedCoeff 0;   //whole domain cells: close to walls and fluid
+            iconCellLimitedWallCoeff 0; //just bad cells close to walls
+        }
+
+        meshQuality
+        {
+            cyclicAMICheckCoeff                 0;
+        
+            maxNonOrtho                 (55    0);
+            maxSkew                     (2     0);
+            maxVolRatio                 (32    0);
+            minVol                      (1e-10 0);
+            maxVol                      (2e6   0);
+            pointVolRatio               (64    0);
+            maxCoordinate ((1000   1000  1000) 0);
+            minCoordinate ((-1000 -1000 -1000) 0);
+        
+            $iconCellLimiterCoeffs; //expanded if active
+        }
+        
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl timeStep;
+        outputInterval 1;
+    }
+
+    volumeReport_regAir_1
+    {
+        order 8;
+        type volumeReport;
+        region region0;
+        enabled yes; //volumeReport
+
+        name volumeReport_regAir_1;
+        logToFile yes;
+
+        fields
+        (
+            Unwv
+            UMag
+            p
+            Cp
+            Cg
+            nuTilda
+            Co
+            UPrime2Mean
+            pPrime2Mean
+        );
+
+        volumes ({type boundBox; min (-1000 -1000 -1000); max (1000 1000 1000);});
+
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl timeStep;
+        outputInterval 1;
+    }
+
+    printDicts_regAir_1
+    {
+        order 9;
+        type printDictionary;
+        region region0;
+        enabled yes; //printDicts
+
+        name printDicts;
+        debug 0;
+
+        dictionaries
+        (
+            fvSchemes fvSolution fvOptions transportProperties LESProperties RASProperties controlDict thermophysicalProperties
+            dynamicMeshDict changeDictionaryDict iconHexMeshDict blockMeshDict decomposeParDict decomposeParDictFinal turbulenceProperties
+            adjointProperties adjointTurbulenceProperties costFunctions
+        );
+
+        timeStart 0;
+        timeEnd $endTime;
+        outputControl timeStep;
+        outputInterval 1;
+    }
+
+);
+
+libs ("libiconCoreFunctionObjects.so" "libgroovyBC.so" "libfiniteVolumeWithTurbulence.so");
+
+//DebugSwitches {disallowGenericFvPatchField 1;}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+// Process 4.1.2 //
