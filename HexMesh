@@ -1,0 +1,234 @@
+FoamFile                                                                        
+{                                                                               
+    object iconHexMeshDict;                                                        
+    class dictionary;                                                     
+    format ascii;                                                               
+    version 2.0;                                                                
+}                                                                               
+                                                                                
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+                                                                                
+debug                                     0;
+mergeTolerance                        1e-08;
+procCellLimit                     330000000; //2e9 faces/6 facesCell (32bit int)
+cellLimit                         330000000; //2e9 faces/6 facesCell (32bit int)
+maxLoadUnbalance                        0.2;
+minimumRefine                            10; //0
+
+distributeGeometry                    false; //true
+handleSnapProblems                       on;
+
+crackTolerance                            0; //0.5 dirty geo, 0 if gapTolMesh on
+removeGapCells                         true;
+
+gapTolerantMeshing                     true;
+minGapSize                             1e-5; //cutOff refinements; added
+nGapCells                                 1;
+
+refineGapCells                        false;
+refineEdgeConnectedCells               true; //false
+refineNodeConnectedCells               true; //false
+checkCoplanar                          true; //added
+removeEdgeConnectedCells              false;
+
+adjustKeepPoints                       true; //added
+minRegionSize                            40; //added
+minBdyRegionSize                         40; //added
+useExactBlockSize                      true; //added
+removeSmallRegions                     true; //added
+minBdyRegionArea                      0.001; //added
+minRegionVol                           1e-8; //added
+
+featureLineFiltering                  false; //it can cause long meshing
+surfIntersectionFeatureLines          false; //high memory
+surfIntersectionFeatureAngle           15.0;
+nonManifoldFeatureLines               false;
+
+checkNormalsInProximity                true; //normals should be consistent
+
+keepLargestVolume                     false;
+keepSecondLargestVolume               false;
+
+//retainInterfacePIDs                  true; //keep pids at CHT contacts
+
+//reportMemory                         true;
+
+holeDetection                         false; //just for checkAndRemove
+multiRegionDetection                  false; //just for checkAndRemove
+
+mergeDuplicateFaceCorners              true; // added
+
+doCellCutting                         false; //cutCells
+cutRegionBoundaries                   false; //41X
+
+features                                 ();
+
+snapDict
+{
+    //dumpSnapQuality                  true;
+    //dumpFeatureLines                 true;
+
+    globalFeatureEdges                 true;
+    directFeatureSnapping              true;
+    aprioriFeatureSnapping             true;
+    postSmoothPatch                    true; //it can be aggressive in small parts
+    simpleSurfaceSnapping             false;
+    smoothMesh                         true;
+    allowQuadSplitting                 true;
+    allowMergingAcrossFeatureLines     true;
+    //allowMergingAcrossRegionBoundaries true;
+
+    featureAngleMerge                    20; //30
+
+    nSmoothPatch                         10;
+    nMidSmoothPatch                      30;
+    nSmoothDispl                         20;
+    nSnap                                15;
+    nFeatureIter                         50;
+    nPostSmoothPatch                      4;
+
+    snapTol                             4.0;
+    minChainLength                       10;
+    directFeatureSnapScale             0.75; //0.5
+    directFeatureUnSnapScale           0.95;
+    directShadowFeatureSnapScale        1.5;
+
+    featureSnappingMethod                 2; //3
+    //maxEquiAngleSkewness              0.1;
+
+    conformalInterfaces                true;
+
+    sheetInsertion                    false;
+    globalSheetInsertion              false;
+
+    filterNonManifoldFaces             true;
+    minAreaCollapseRatio                0.4;
+
+    smoothPatchRelax1                   0.6;
+    smoothPatchRelax2                -0.618;
+
+    removeProblemCells                 true;
+
+    collapseShortEdges                 true;
+}
+
+motionDict
+{
+    maxNonOrtho                          70; //75
+    maxBoundarySkewness                   4;
+    maxInternalSkewness                   4;
+    maxConcave                           80;
+
+    minFlatness                         0.5;
+    minVol                            1e-15;
+    minArea                           1e-13;
+    minLength                          1e-8;
+    minTwist                           0.05;
+    minDeterminant                     0.01; //0.001
+    minFaceWeight                      0.06;
+    minVolRatio                        0.01; //0.02
+    minTriangleTwist                  -0.99;
+    //minTetQuality                   1e-12; //new mesh criteria
+    minSphericity                       0.5; //new mesh criteria
+    maxAspectRatio                     1000; //new mesh criteria
+    minBdyFaceRoundness                 0.2; //new mesh criteria
+
+    nSmoothScale                          4;
+    errorReduction                     0.75;
+    minVolCollapseRatio                -1.0;
+
+    layerFaces
+    {
+        minDeterminant                 0.01; //0
+        minFaceWeight                  0.04;
+        minVolRatio                    0.01; //0.02
+        //minTetQuality                  -1; //new mesh criteria
+        minSphericity                   0.3; //new mesh criteria
+        //maxAspectRatio               -1.0; //new mesh criteria
+    }
+}
+
+shrinkDict
+{
+    //dumpLayerQuality                 true;
+
+    featureAngleGrowAround              100; //170
+    featureAngleTerminate               100; //180
+
+    expansionRatio                     1.30;
+    finalLayerRatio                    0.40;
+
+    minThickness                      0.125; //TLTmin=minThickness*TLT
+    minThicknessMethod               "LEL+"; //4010+
+
+    nGrow                                 1; //0
+    nSnap                                 5;
+
+    nSmoothSurfaceNormals                20;
+    nSmoothNormals                       10;
+    nSmoothThickness                     50;
+    nSmoothOuterLayer                     4;
+
+    maxFaceThicknessRatio               0.4;
+    maxThicknessToMedialRatio           0.3;
+    minMedianAxisAngle                   90;
+    nBufferCellsNoExtrude                 0;
+    terminationStrategy                   0;
+    nLayerIter                           50;
+
+    growConvexEdge                    false;
+    growConcaveEdge                   false;
+    growUpPatches                      true;
+    growUpNonPlanarPatches            false; //can produce div with SREP fan
+
+    truncateFromWall                   true;
+    redistributeManifold               true;
+    allowSharedEdgeExtrusion           true;
+    allowMergingAcrossFeatureLines     true;
+
+    smoothPatch                        true; //from 40X only
+    maxGrowthConstraintAngle           45.0;
+
+    constantLayerThickness             true;
+    specifyLayerHeight                 true;
+
+    refineLayer                        true; //new solver layers. It should be off for cutCells
+    modifyCorners                     false; //hmesh in corners
+}
+
+cutDict
+{
+    cutFeatureLines                    true; //cutCells for features
+    nodeSnapTolerance                   0.2;
+}
+
+doRefine true;
+doSnap true;
+doLayers true;
+doRedistribute false;
+splitMeshRegions false;
+useEnhancedCellZoneConstruction true;
+refineRegionBoundaries false;
+snapRegionBoundaries true;
+
+create2DMesh false;
+extrude2DMesh false;
+extrudeDict {}
+
+autoBlockMesh false;
+blockData (2.5 0);
+nBufferLayers 2;
+featureRefineAngle 30;
+curvature 0.866025; // curvatureAngle= 30
+mergeBaffles false;
+
+meshRegions
+(
+    {
+        name region0;
+        keepPoints
+        (
+            (0.33 -2.15 2.27)  //Global keepPoint 1
+        );
+    }
+);
