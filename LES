@@ -1,0 +1,48 @@
+FoamFile                                                                        
+{                                                                               
+    object turbulenceProperties;                                                        
+    class dictionary;                                                     
+    format ascii;                                                               
+    version 2.0;                                                                
+}                                                                               
+                                                                                
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+                                                                                
+LESModel SpalartAllmarasDDES;
+turbulence on;
+printCoeffs on;
+
+SpalartAllmarasDDESCoeffs
+{
+    alphaNut 1.5;
+    Cb1 0.1355;
+    Cb2 0.622;
+    Cw2 0.3;
+    Cw3 2;
+    Cv1 7.1;
+    Cv2 5;
+    CDES 0.65;
+    ck 0.07;
+}
+
+delta smooth;
+
+smoothCoeffs
+{
+    delta cubeRootVol;
+    cubeRootVolCoeffs
+    {
+        deltaCoeff 1;
+    }
+    maxDeltaRatio 1.15;
+}
+
+wallFunctionCoeffs
+{
+    kappa 0.4187;
+    E 9;
+    //maxFirstCellVolRatio 32;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+// Process 4.1.2 //
