@@ -1,0 +1,161 @@
+FoamFile                                                                        
+{                                                                               
+    object fvSchemes;                                                        
+    class dictionary;                                                     
+    format ascii;                                                               
+    version 2.0;                                                                
+}                                                                               
+                                                                                
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+                                                                                
+RREF 1.205; PREF 0; TREF 293.15; UREF 35.8; LREF 2.786; //region properties
+
+AMISearchRadiusFactor 0.3;
+
+modifiedSurfaceInterpolation                                        false;
+assumeNoTopologyChanges true;                     assumeNoTopologyChanges; //wall distance update per iteration. Backward compatibility
+
+ddtSchemes
+{
+    //default                                                       Euler;
+    default                                                      backward;
+    //default                                          CrankNicholson 0.9;
+    //default                                             boundedBackward;
+}
+
+interpolationSchemes
+{
+    default                                                        linear;
+    Ua                                                      reverseLinear;
+}
+
+snGradSchemes
+{
+    default                                                 limited 0.333;
+
+    snGrad(pf)                                                uncorrected;
+    snGrad(deltaf)                                            uncorrected;
+}
+
+fluxRequired
+{
+    default                                                            no;
+                                                                        p;
+                                                                    p_rgh;
+                                                                       pa;
+                                                                    pcorr;
+                                                                   alpha1;
+                                                                   deltaf;
+}
+
+fluxAltAP                                                                  //more stable also for DES
+{
+    "omega|epsilon|k|v2|f|zeta|nuTilda|k1|R"                           "";
+    "w|alpha1|Yi"                                                      "";
+    "U|Ua"                                                             "";
+    "h|T|alphat|alphaSgs|Qr|discBrakeMacro"                            "";
+    "mut|nut|nuSgs|muSgs"                                              "";
+    "Uf"                                                               "";
+
+    default                                                            no;
+}
+
+wallDist
+{
+    method                                                       meshWave;
+}
+
+laplacianSchemes
+{
+    default                                    Gauss linear limited 0.333;
+
+    laplacian(nuEff,Ua)_ALA                      Gauss linear uncorrected;
+
+    laplacian(sigmaf,deltaf)                    Gauss linear limited 0.33;
+    laplacian(deltaCoeff,deltaf)                Gauss linear limited 0.33;
+}
+
+gradSchemes
+{
+    //default                                iconCellLimited Gauss linear;
+    //default                                cellLimited leastSquares 1.0;
+    //default                                     cellLimited iconGauss 1;
+    //default                                                 GLSQ linear;
+    //default                                                   iconGauss;
+    //default                                                       WLSQG;
+    //default                                                Gauss linear;
+    //default                                  cellLimited Gauss linear 1;
+    default                                     iconCellLimited iconGauss;
+
+    grad(rhog)                                               Gauss linear;
+    grad(rho)                                                Gauss linear;
+    grad(p_rgh)                                              Gauss linear;
+    grad(p)                                                  Gauss linear;
+
+    grad(alpha)                                              Gauss linear;
+    grad(sigmaf)                                             Gauss linear;
+
+    grad(pa)                                          Gauss reverseLinear;
+
+    grad(cellDisplacement)                   iconCellLimited Gauss linear;
+}
+
+divSchemes
+{
+    default                                                  Gauss linear;
+
+    //div(phi,U)      Gauss localBlended iconLUST Gauss linear 0.7 upwind;
+    //div(phi,U)          Gauss iconLUST iconCellLimited Gauss linear 0.7;
+    //div(phi,U)           Gauss iconLUST iconCellLimited GLSQ linear 0.7;
+    //div(phi,U)                 Gauss iconLUST iconCellLimited WLSQG 0.7;
+    //div(phi,U)                     Gauss fixedBlended 0.8 linear upwind;
+    //div(phi,U)                          Gauss iconLUST Gauss linear 0.7;
+    //div(phi,U)                             Gauss iconLUST iconGauss 0.7;
+    //div(phi,U)                                    Gauss limitedLinear 1;
+    //div(phi,U)                                             Gauss upwind;
+    //div(phi,U)                                           Gauss DESHybrid
+    //                                                              linear // scheme 1. This is the higher-order scheme to use
+    //                                           linearUpwind Gauss linear // scheme 2. This is the lower-order scheme to use.
+    //                                                                0.65 // DES coefficient, typically = 0.65
+    //                                                               $UREF // Reference velocity scale; typically equal to the free-stream velocity
+    //                                                               $LREF // Reference length scale; e.g., the wheel base distance
+    //                                                                   0 // Minimum sigma limit (0-1)
+    //                                                                   1 // Maximum sigma limit (0-1)
+    //                                                            1.0e-03; // Limiter of B function, typically 1.0e-03
+    div(phi,U)           Gauss localBlended filteredLinear2V 0.5 0 upwind;
+
+    div(rho*phi,U)                                            $div(phi,U); //VoF
+
+    div(phi,k)                                               Gauss upwind;
+    div(phi,kl)                                              Gauss upwind;
+    div(phi,epsilon)                                         Gauss upwind;
+    div(phi,omega)                                           Gauss upwind;
+    div(phi,nuTilda)                                         Gauss upwind;
+    div(phi,v2)                                              Gauss upwind;
+    div(phi,f)                                               Gauss upwind;
+    div(phi,zeta)                                            Gauss upwind;
+
+    div(phi,alpha)                                        Gauss vanLeer01;
+    div(phirb,alpha)                           Gauss interfaceCompression; //Gauss linear
+
+    div(phi,R)                                               Gauss upwind;
+
+    div(-phi,Ua)                                             Gauss upwind;
+    div(-phi,Ua)_ALA                                         Gauss upwind;
+    div(phi,pa)                                              Gauss upwind;
+
+    div(phi,h)                                               Gauss upwind;
+    div(phi,T)                                               Gauss upwind;
+
+    div(phi,Yi)                                              Gauss upwind;
+
+    div(phi,w)                                               Gauss upwind;
+
+    div(phi,Uf)                                              Gauss upwind;
+    div(phid,deltaf)                                         Gauss upwind;
+    div(phi,hf)                                              Gauss upwind;
+    div(nHat)                                                Gauss linear;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+// Process 4.1.2 //
