@@ -1,0 +1,26 @@
+FoamFile                                                                        
+{                                                                               
+    object turbulenceProperties;                                                        
+    class dictionary;                                                     
+    format ascii;                                                               
+    version 2.0;                                                                
+}                                                                               
+                                                                                
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+                                                                                
+RASModel SpalartAllmaras;
+turbulence on;
+printCoeffs on;
+
+
+wallFunctionCoeffs
+{
+    kappa 0.4187;
+    E 9;
+    //maxFirstCellVolRatio 32;
+}
+
+thermalWallFunctions false;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+// Process 4.1.2 //
