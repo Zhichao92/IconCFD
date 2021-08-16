@@ -1,0 +1,588 @@
+FoamFile                                                                        
+{                                                                               
+    object fvSolution;                                                        
+    class dictionary;                                                     
+    format ascii;                                                               
+    version 2.0;                                                                
+}                                                                               
+                                                                                
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+                                                                                
+RREF 1.205; PREF 0; TREF 293.15; UREF 35.8; LREF 2.786; //region properties
+
+potentialFlow
+{
+    nNonOrthogonalCorrectors                                            4;
+}
+
+cache
+{
+    //ST flow
+    grad(U);
+    grad(p);
+
+    //adjoints
+    ALA(U);
+    symm(ALA(U));
+    skew(ALA(U));
+    Da0(U);
+
+    active true;
+}
+
+deltaSmall                                                           1e-6; //film param
+deltaCrit                                                           0.002; //film param
+deltaCorr                                                            1e-4; //film param
+
+SIMPLE
+{
+    consistent                                                       true; //consistent formulation
+    //convergence                                                 0.00001;
+    transonic                                                       false;
+    nNonOrthogonalCorrectors                                            1;
+
+    pRefCell                                                            0;
+    pRefValue                                                       $PREF;
+    paRefCell                                                           0;
+    paRefValue                                                      $PREF;
+
+    pMin                                     pMin [ 0 2 -2 0 0 0 0 ] -1e4;
+    pMax                                     pMax [ 0 2 -2 0 0 0 0 ]  1e4;
+
+    fluxGradp                                                       false; //mod enthalpyEq and PM model in comp
+    turbDissipation                                                 false;
+}
+
+PISO
+{
+    consistent                                                       true; //consistent formulation
+
+    momentumPredictor                                                true;
+
+    nCorrectors                                                        20;
+    nNonOrthogonalCorrectors                                            1; //1 if divergence
+
+    nOuterCorr                                                          1; //film
+    nCorr                                                               1; //film
+    nNonOrthCorr                                                        3; //film
+
+    deltaSmall                                                      1e-30; //film
+    deltaCrit                                                      0.0001; //film
+    deltaCorr                                                        1e-5; //film
+    negativeDeltaIterations                                             1; //film
+    maximumNegativeDelta                                            -1e-8; //film
+    maximumFluxInProblematicCells                                    1e-5; //film
+    maximumDeltaFluxCorrection                                       1e-5; //film
+    impactFaceAreaLimit                                              1e-7; //film
+    maxFilmVelocityComponent                                           60; //film
+    maxFilmVelocityNormal                                              20; //film
+    deltaCoLimit                                                     1e-7; //film
+
+    transonic                                                       false;
+
+    pRefCell                                                            0;
+    pRefValue                                                       $PREF;
+    paRefCell                                                           0;
+    paRefValue                                                      $PREF;
+
+    pMin                                     pMin [ 0 2 -2 0 0 0 0 ] -1e4;
+    pMax                                     pMax [ 0 2 -2 0 0 0 0 ]  1e4;
+
+    fluxGradp                                                       false; //mod enthalpyEq and PM model in comp
+    turbDissipation                                                 false;
+
+    nAlphaCorr                                                          1;
+    nAlphaSubCycles                                                     4;
+    cAlpha                                                              1;
+
+    icAlpha                                                             0;
+    MULESCorr                                                        true;
+    nLimiterIter                                                       10;
+
+    autoAlphaCycle                                                  false; //nSubCycles based on Co inter. Inf loops
+    maxAlphaSubCycles                                                  10;
+
+    residualControl
+    {
+        "p_rgh|p"
+        {
+            tolerance                                                5e-5;
+            relTol                                                    0.2;
+        }
+    }
+}
+
+PIMPLE
+{
+    consistent                                                       true; //consistent formulation
+
+    momentumPredictor                                                true;
+
+    nOuterCorrectors                                                   20;
+    nCorrectors                                                         3; //hardcoded
+    nNonOrthogonalCorrectors                                            1; //1 if divergence
+
+    nOuterCorr                                                          1; //film
+    nCorr                                                               1; //film
+    nNonOrthCorr                                                        3; //film
+
+    deltaSmall                                                      1e-30; //film
+    deltaCrit                                                      0.0001; //film
+    deltaCorr                                                        1e-5; //film
+    negativeDeltaIterations                                             1; //film
+    maximumNegativeDelta                                            -1e-8; //film
+    maximumFluxInProblematicCells                                    1e-5; //film
+    maximumDeltaFluxCorrection                                       1e-5; //film
+    impactFaceAreaLimit                                              1e-7; //film
+    maxFilmVelocityComponent                                           60; //film
+    maxFilmVelocityNormal                                              20; //film
+    deltaCoLimit                                                     1e-7; //film
+
+    turbOnFinalIterOnly                                             false;
+
+    transonic                                                       false;
+
+    pRefCell                                                            0;
+    pRefValue                                                       $PREF;
+    paRefCell                                                           0;
+    paRefValue                                                      $PREF;
+
+    pMin                                     pMin [ 0 2 -2 0 0 0 0 ] -1e4;
+    pMax                                     pMax [ 0 2 -2 0 0 0 0 ]  1e4;
+
+    fluxGradp                                                       false; //mod enthalpyEq and PM model in comp
+    turbDissipation                                                 false;
+
+    nAlphaCorr                                                          1;
+    nAlphaSubCycles                                                     4;
+    cAlpha                                                              1;
+
+    icAlpha                                                             0;
+    MULESCorr                                                        true;
+    nLimiterIter                                                       10;
+
+    autoAlphaCycle                                                  false; //nSubCycles based on Co inter. Inf loops
+    maxAlphaSubCycles                                                  10;
+
+    residualControl
+    {
+        "p_rgh|p"
+        {
+            tolerance                                                5e-5;
+            relTol                                                   0.02;
+        }
+    }
+}
+
+solvers
+{
+    settingGAMG
+    {
+        agglomerator                                         faceAreaPair;
+        mergeLevels                                                     1;
+        cacheAgglomeration                                           true;
+        nCellsInCoarsestLevel                                         500;
+        nPreSweeps                                                      0;
+        nPostSweeps                                                     1;
+        nFinestSweeps                                                   2;
+        nVcycles                                                        1;
+        directSolveCoarsest                                         false;
+    };
+
+    pressureUni
+    {
+        solver                                                       GAMG;
+        smoother                                           DICGaussSeidel;
+
+        $settingGAMG;
+
+        tolerance                                                    1e-9;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    pressureUniFinal
+    {
+        solver                                                       GAMG;
+        smoother                                           DICGaussSeidel;
+
+        $settingGAMG;
+
+        tolerance                                                    1e-6;
+        relTol                                                       1e-3;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    pressureVof
+    {
+        solver                                                        PCG;
+        smoother                                           DICGaussSeidel;
+
+        preconditioner
+        {
+            preconditioner                                           GAMG;
+            smoother                                       DICGaussSeidel;
+
+            $settingGAMG;
+
+            tolerance                                                1e-9;
+            relTol                                                   1e-2;
+            maxIter                                                    50;
+            minIter                                                     1;
+        }
+
+        tolerance                                                    1e-9;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    }
+
+    pressureVofFinal
+    {
+        solver                                                        PCG;
+        smoother                                           DICGaussSeidel;
+
+        preconditioner
+        {
+            preconditioner                                           GAMG;
+            smoother                                       DICGaussSeidel;
+
+            $settingGAMG;
+
+            tolerance                                                1e-6;
+            relTol                                                   1e-3;
+            maxIter                                                    50;
+            minIter                                                     1;
+        }
+
+        tolerance                                                    1e-6;
+        relTol                                                       1e-3;
+        maxIter                                                        50;
+        minIter                                                         1;
+    }
+
+    //Defaults
+    "p|p_rgh|pa|pcorr|f"                                    {$pressureUni;}
+
+    //Defaults
+    "pFinal|p_rghFinal|fFinal"                         {$pressureUniFinal;}
+
+    "U|Ua"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+        smoother                                           DICGaussSeidel;
+
+        tolerance                                                    1e-8;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "(U|Ua)Final"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+        smoother                                           DICGaussSeidel;
+
+        tolerance                                                    1e-8;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "nuTilda|k|kl|epsilon|omega|R|w|v2|zeta"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+        smoother                                           DICGaussSeidel;
+
+        tolerance                                                    1e-9;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "(nuTilda|k|kl|epsilon|omega|R|w|v2|zeta)Final"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+        smoother                                           DICGaussSeidel;
+
+        tolerance                                                    1e-9;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "T|TFinal"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                           diagonal;
+        smoother                                           DICGaussSeidel;
+
+        tolerance                                                    1e-9;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "h|rho"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+        smoother                                           DICGaussSeidel;
+
+        tolerance                                                    1e-9;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "(h|rho)Final"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+        smoother                                           DICGaussSeidel;
+
+        tolerance                                                    1e-9;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "alpha1|alpha1Final"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+        smoother                                           DICGaussSeidel;
+
+        nSweeps                                                         1;
+
+        tolerance                                                   1e-14;
+        relTol                                                       1e-2;
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "Phi"
+    {
+        $p
+    };
+
+    "(hf|deltaf\*rhof)"
+    {
+        solver                                               smoothSolver;
+        smoother                                              GaussSeidel;
+
+        tolerance                                                   1e-16; //1e-8
+        relTol                                                       1e-3; //0
+        maxIter                                                        50;
+        minIter                                                         1;
+    };
+
+    "Uf"
+    {
+        solver                                               smoothSolver;
+        smoother                                              GaussSeidel;
+
+        tolerance                                                   1e-16; //1e-8
+        relTol                                                       1e-3; //0
+        maxIter                                                        50;
+        minIter                                                         2;
+    };
+
+    "deltaf"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                               DILU;
+
+        tolerance                                                   1e-16; //1e-8
+        relTol                                                       1e-4; //0
+        maxIter                                                       100;
+        minIter                                                         1;
+    };
+
+    "cellDisplacement"
+    {
+        solver                                                   BiCGStab;
+        preconditioner                                                DIC;
+        smoother                                              GaussSeidel;
+
+        tolerance                                                    1e-8;
+        relTol                                                          0;
+        maxIter                                                        50;
+        minIter                                                         1;
+
+    };
+}
+
+relaxationFactors_PIMPLE
+{
+    pFinal                                                           1.00;
+    p_rghFinal                                                       1.00;
+    UFinal                                                           1.00;
+    kFinal                                                           1.00;
+    epsilonFinal                                                     1.00;
+    nuTildaFinal                                                     1.00;
+    omegaFinal                                                       1.00;
+    v2Final                                                          1.00;
+    fFinal                                                           1.00;
+    zetaFinal                                                        1.00;
+    hFinal                                                           1.00;
+    rhoFinal                                                         1.00;
+    UaFinal                                                          1.00;
+    paFinal                                                          1.00;
+    TFinal                                                           1.00;
+    alpha1Final                                                      1.00;
+    ALAFinal                                                         0.95;
+    UfFinal                                                          1.00;
+    hfFinal                                                          1.00;
+    "deltaf\*rhofFinal"                                              1.00;
+    deltafFinal                                                      1.00;
+    cellDisplacementFinal                                            1.00;
+
+    p                                                                0.30;
+    p_rgh                                                            0.30;
+    U                                                                0.50;
+    k                                                                0.70;
+    epsilon                                                          0.70;
+    nuTilda                                                          0.70;
+    omega                                                            0.70;
+    v2                                                               0.70;
+    f                                                                0.30;
+    zeta                                                             0.70;
+    h                                                                0.20;
+    rho                                                              0.20;
+    Ua                                                               0.70;
+    pa                                                               0.30;
+    T                                                                0.70;
+    alpha1                                                           0.70;
+    ALA                                                              0.95;
+    Uf                                                               0.70;
+    hf                                                               0.70;
+    "deltaf\*rhof"                                                   0.70;
+    deltaf                                                           0.70;
+    cellDisplacement                                                 0.70;
+
+    pMin                                                             0.15;
+    p_rghMin                                                         0.15;
+    UMin                                                             0.25;
+    kMin                                                             0.35;
+    epsilonMin                                                       0.35;
+    nuTildaMin                                                       0.35;
+    omegaMin                                                         0.35;
+    v2Min                                                            0.35;
+    fMin                                                             0.15;
+    zetaMin                                                          0.35;
+    hMin                                                             0.10;
+    rhoMin                                                           0.10;
+    UaMin                                                            0.35;
+    paMin                                                            0.15;
+    TMin                                                             0.35;
+    alpha1Min                                                        0.35;
+    ALAMin                                                           0.95;
+    UfMin                                                            0.35;
+    hfMin                                                            0.35;
+    "deltaf\*rhofMin"                                                0.35;
+    deltafMin                                                        0.35;
+    cellDisplacementMin                                              0.35;
+
+    fk                                                              0.001;
+
+    boundaries
+    {
+        T                                                            1.00;
+    }
+}
+
+relaxationFactors_PISO
+{
+    pFinal                                                           1.00;
+    p_rghFinal                                                       1.00;
+    UFinal                                                           1.00;
+    kFinal                                                           1.00;
+    epsilonFinal                                                     1.00;
+    nuTildaFinal                                                     1.00;
+    omegaFinal                                                       1.00;
+    v2Final                                                          1.00;
+    fFinal                                                           1.00;
+    zetaFinal                                                        1.00;
+    hFinal                                                           1.00;
+    rhoFinal                                                         1.00;
+    UaFinal                                                          1.00;
+    paFinal                                                          1.00;
+    TFinal                                                           1.00;
+    alpha1Final                                                      1.00;
+    ALAFinal                                                         0.95;
+    UfFinal                                                          1.00;
+    hfFinal                                                          1.00;
+    "deltaf\*rhofFinal"                                              1.00;
+    deltafFinal                                                      1.00;
+    cellDisplacementFinal                                            1.00;
+
+    p                                                                1.00; //0.8
+    p_rgh                                                            0.80;
+    U                                                                1.00;
+    k                                                                1.00;
+    epsilon                                                          1.00;
+    nuTilda                                                          1.00;
+    omega                                                            1.00;
+    v2                                                               1.00;
+    f                                                                1.00;
+    zeta                                                             1.00;
+    h                                                                1.00;
+    rho                                                              1.00;
+    Ua                                                               1.00;
+    pa                                                               1.00;
+    T                                                                1.00;
+    alpha1                                                           1.00;
+    ALA                                                              0.95;
+    Uf                                                               1.00;
+    hf                                                               1.00;
+    "deltaf\*rhof"                                                   1.00;
+    deltaf                                                           1.00;
+    cellDisplacement                                                 1.00;
+
+    pMin                                                             0.80;
+    p_rghMin                                                         0.80;
+    UMin                                                             0.80;
+    kMin                                                             0.40;
+    epsilonMin                                                       0.40;
+    nuTildaMin                                                       0.40;
+    omegaMin                                                         0.40;
+    v2Min                                                            0.40;
+    fMin                                                             0.40;
+    zetaMin                                                          0.40;
+    hMin                                                             0.80;
+    rhoMin                                                           0.80;
+    UaMin                                                            0.80;
+    paMin                                                            0.80;
+    TMin                                                             0.80;
+    alpha1Min                                                        0.80;
+    ALAMin                                                           0.95;
+    UfMin                                                            0.80;
+    hfMin                                                            0.80;
+    "deltaf\*rhofMin"                                                0.80;
+    deltafMin                                                        0.80;
+    cellDisplacementMin                                              0.80;
+
+    fk                                                              0.001;
+
+    boundaries
+    {
+        T                                                            1.00;
+    }
+}
+
+HUMIDITY
+{
+    solveHumidity no;
+}
+
+relaxationFactors {$relaxationFactors_PISO; applyDelayedRamp true; urfTd 30; urfTr 50;} //SET
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
+// Process 4.1.2 //
